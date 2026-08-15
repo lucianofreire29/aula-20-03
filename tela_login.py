@@ -1,71 +1,86 @@
 import customtkinter as ctk
-from CTkMessagebox import CTkMessagebox as mg
-from tela_cadastro import TelaCadastro
+from CTkMessagebox import CTkMessagebox
+
 
 class TelaLogin(ctk.CTkFrame):
-    def __init__(self, parent, trocar_tela, **kwargs):
+    def __init__(self, parent, trocar_tela, autenticar_usuario, **kwargs):
         super().__init__(parent, **kwargs)
 
         self.trocar_tela = trocar_tela
-    # aidiconar os componentes
+        self.autenticar_usuario = autenticar_usuario
 
-        # titulo
         self.label_titulo = ctk.CTkLabel(
-                                    self,
-                                    text="Login",
-                                    font=("High Tower Text", 18, "bold")
-                                        )
-        self.label_titulo.pack(pady=10)
+            self,
+            text="Login",
+            font=("High Tower Text", 18, "bold"),
+        )
+        self.label_titulo.pack(pady=(30, 18))
 
-        self.entry_Email = ctk.CTkEntry(self,height=40
-                                        ,placeholder_text="Email")
-        self.entry_Email.pack(pady=6, padx=10, fill="x")
-        
+        self.entry_email = ctk.CTkEntry(
+            self,
+            height=40,
+            placeholder_text="E-mail",
+        )
+        self.entry_email.pack(pady=6, padx=20, fill="x")
 
+        self.entry_senha = ctk.CTkEntry(
+            self,
+            height=40,
+            placeholder_text="Senha",
+            show="*",
+        )
+        self.entry_senha.pack(pady=6, padx=20, fill="x")
+        self.entry_senha.bind("<Return>", lambda _event: self.entrar())
 
-        self.entry_senha = ctk.CTkEntry(self,
-                                        height=40,
-                                        placeholder_text="senha",
-                                        show="*")
-        self.entry_senha.pack(pady=6, padx=10, fill="x")
+        self.checkbox_lembrar = ctk.CTkCheckBox(self, text="Lembrar-me")
+        self.checkbox_lembrar.pack(pady=8, padx=20, anchor="w")
 
-        self.check_box = ctk.CTkCheckBox(self,text="lembrar-me")
-        self.check_box.pack(pady=6,padx=10,fill="x")
+        self.btn_entrar = ctk.CTkButton(
+            self,
+            text="Entrar",
+            command=self.entrar,
+        )
+        self.btn_entrar.pack(pady=(12, 6))
 
-        self.btn_enviar = ctk.CTkButton(self,
-                                        text="Login",
-                                        )
-        self.btn_enviar.pack(pady=6)
-
-        self.btn_visualizar = ctk.CTkButton(self,
-                                            text="visualizar senha",
-                                            command=self.visualizar_senhas)
+        self.btn_visualizar = ctk.CTkButton(
+            self,
+            text="Mostrar senha",
+            command=self.alternar_visibilidade_senha,
+        )
         self.btn_visualizar.pack(pady=6)
-
-
 
         self.btn_cadastrar = ctk.CTkButton(
             self,
-            text="Cadastrar",
-            command=lambda: self.trocar_tela("cadastro")
+            text="Criar conta",
+            command=lambda: self.trocar_tela("cadastro"),
         )
         self.btn_cadastrar.pack(pady=6)
 
-    def visualizar_senhas(self):
-        if self.entry_senha.cget("show") == "*":
-            self.entry_senha.configure(show="")
+    def entrar(self):
+        email = self.entry_email.get().strip()
+        senha = self.entry_senha.get()
 
-            self.btn_visualizar.configure(text="ocultar senhas")
-        else:
-            self.entry_senha.configure(show="*")
+        if not email or not senha:
+            CTkMessagebox(
+                title="Campos obrigatórios",
+                message="Informe o e-mail e a senha.",
+                icon="warning",
+            )
+            return
 
-            self.btn_visualizar.configure(text="mostrar senhas")
+        sucesso, mensagem = self.autenticar_usuario(email, senha)
+        CTkMessagebox(
+            title="Login realizado" if sucesso else "Falha no login",
+            message=mensagem,
+            icon="check" if sucesso else "cancel",
+        )
 
+        if sucesso:
+            self.entry_senha.delete(0, "end")
 
-
-
-
-
-
-
-# aidiconar os metodos
+    def alternar_visibilidade_senha(self):
+        senha_visivel = self.entry_senha.cget("show") == ""
+        self.entry_senha.configure(show="*" if senha_visivel else "")
+        self.btn_visualizar.configure(
+            text="Mostrar senha" if senha_visivel else "Ocultar senha"
+        )
